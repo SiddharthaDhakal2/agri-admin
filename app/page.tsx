@@ -124,12 +124,7 @@ export default function Home() {
             </div>
 
             <div className="field">
-              <div className="label-row">
-                <label htmlFor="password">Password</label>
-                <a href="mailto:support@agribridge.com?subject=Admin password reset">
-                  Forgot password?
-                </a>
-              </div>
+              <label htmlFor="password">Password</label>
               <div className="input-wrap">
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
                   <rect x="4" y="10" width="16" height="11" rx="2" />
@@ -153,30 +148,11 @@ export default function Home() {
               </div>
             </div>
 
-            <label className="remember">
-              <input type="checkbox" name="remember" />
-              <span>Keep me signed in on this device</span>
-            </label>
-
             <button className="submit-button" type="submit">
-              Sign in to dashboard
-              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
-                <path d="M5 12h14m-5-5 5 5-5 5" />
-              </svg>
+              Sign in
             </button>
 
           </form>
-
-          <div className="support-note">
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M9.7 9a2.5 2.5 0 1 1 3.2 2.4c-.7.3-.9.8-.9 1.6M12 17h.01" />
-            </svg>
-            <span>
-              Having trouble?{" "}
-              <a href="mailto:support@agribridge.com">Contact support</a>
-            </span>
-          </div>
         </div>
 
         <footer>© 2026 Agribridge. All rights reserved.</footer>
