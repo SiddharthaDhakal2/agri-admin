@@ -67,6 +67,7 @@ export function AdminShell({
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const active = navItems.find((item) => item.href === pathname)?.label ?? "Dashboard";
   const pageTitle = title ?? active;
   const pageSubtitle = subtitle ?? (
@@ -79,8 +80,8 @@ export function AdminShell({
     <div className="admin-shell">
       <aside className={`admin-sidebar ${sidebarOpen ? "is-open" : ""}`}>
         <div className="admin-logo">
-          <span className="logo-leaf">A</span>
-          <div><strong>Agribridge</strong></div>
+          <img className="logo-leaf" src="/agri_logo.png" alt="" />
+          <div><strong>AgriBridge</strong></div>
         </div>
         <nav className="admin-nav" aria-label="Admin navigation">
           {navItems.map((item) => (
@@ -94,9 +95,9 @@ export function AdminShell({
             </Link>
           ))}
         </nav>
-        <Link className="logout-button" href="/">
+        <button className="logout-button" type="button" onClick={() => setLogoutOpen(true)}>
           <Icon name="logout"/><span>Log out</span>
-        </Link>
+        </button>
       </aside>
       {sidebarOpen && <button className="sidebar-scrim" aria-label="Close navigation" onClick={() => setSidebarOpen(false)} />}
 
@@ -124,6 +125,20 @@ export function AdminShell({
           {children}
         </main>
       </div>
+
+      {logoutOpen && (
+        <div className="logout-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+          <button className="detail-backdrop" type="button" aria-label="Cancel logout" onClick={() => setLogoutOpen(false)} />
+          <section className="dashboard-card logout-confirm-panel">
+            <h2 id="logout-title">Confirm Logout</h2>
+            <p>Are you sure you want to logout?</p>
+            <div className="logout-confirm-actions">
+              <button type="button" onClick={() => setLogoutOpen(false)}>Cancel</button>
+              <Link href="/">Logout</Link>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
