@@ -8,7 +8,7 @@ export type IconName =
   | "dashboard" | "farmer" | "buyer" | "approval" | "orders"
   | "product" | "inventory" | "payments" | "ads" | "profile"
   | "logout" | "search" | "bell" | "menu" | "arrow" | "more" | "eye" | "x"
-  | "edit" | "trash" | "plus" | "trendUp" | "warning" | "trendDown";
+  | "edit" | "trash" | "plus" | "trendUp" | "warning" | "trendDown" | "wallet";
 
 export function Icon({ name }: { name: IconName }) {
   const paths: Record<IconName, React.ReactNode> = {
@@ -36,6 +36,7 @@ export function Icon({ name }: { name: IconName }) {
     trendUp: <><path d="m4 15 5-5 4 4 7-7"/><path d="M15 7h5v5"/></>,
     warning: <><path d="M12 4 3 20h18L12 4Z"/><path d="M12 9v4M12 17h.01"/></>,
     trendDown: <><path d="m4 9 5 5 4-4 7 7"/><path d="M15 17h5v-5"/></>,
+    wallet: <><path d="M4 7h16v12H4z"/><path d="M16 11h4v4h-4a2 2 0 0 1 0-4Z"/><path d="M4 7l3-3h10l3 3"/></>,
   };
 
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">{paths[name]}</svg>;
@@ -57,10 +58,12 @@ export function AdminShell({
   children,
   title,
   subtitle,
+  hidePageTitle = false,
 }: {
   children: React.ReactNode;
   title?: string;
   subtitle?: string;
+  hidePageTitle?: boolean;
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -110,12 +113,14 @@ export function AdminShell({
         </header>
 
         <main className="dashboard-content">
-          <div className="page-title">
-            <div>
-              <h1>{pageTitle}</h1>
-              <span>{pageSubtitle}</span>
+          {!hidePageTitle && (
+            <div className="page-title">
+              <div>
+                <h1>{pageTitle}</h1>
+                <span>{pageSubtitle}</span>
+              </div>
             </div>
-          </div>
+          )}
           {children}
         </main>
       </div>
