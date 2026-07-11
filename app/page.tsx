@@ -4,29 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 function AgribridgeMark() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-10 w-10"
-      viewBox="0 0 48 48"
-      fill="none"
-    >
-      <rect width="48" height="48" rx="13" fill="#183F31" />
-      <path
-        d="M14 31.5C16.5 23.2 22.3 17.9 34.5 14c-1 9.7-6.6 16.6-16.6 18.2"
-        stroke="#EAF3E7"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M16 35c2.7-6.1 7.3-10.4 14.8-14.2"
-        stroke="#A5CC6B"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
+  return <img className="brand-logo" src="/agri_logo.png" alt="" />;
 }
 
 function EyeIcon({ hidden }: { hidden: boolean }) {
@@ -53,11 +31,11 @@ export default function Home() {
 
   return (
     <main className="login-shell">
-      <section className="story-panel" aria-label="About Agribridge">
+      <section className="story-panel" aria-label="About AgriBridge">
         <div className="story-content">
           <div className="brand brand-light">
             <AgribridgeMark />
-            <span>Agribridge</span>
+            <span>AgriBridge</span>
           </div>
 
           <div className="story-copy">
@@ -69,17 +47,6 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="metric-card">
-            <div className="metric-icon">
-              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
-                <path d="M5 19V9m7 10V5m7 14v-7" />
-              </svg>
-            </div>
-            <div>
-              <strong>One clear view</strong>
-              <span>Monitor operations across your whole ecosystem.</span>
-            </div>
-          </div>
         </div>
 
         <div className="field-lines" aria-hidden="true">
@@ -95,14 +62,14 @@ export default function Home() {
       <section className="form-panel">
         <div className="mobile-brand brand">
           <AgribridgeMark />
-          <span>Agribridge</span>
+          <span>AgriBridge</span>
         </div>
 
         <div className="form-wrap">
           <div className="form-heading">
             <span className="eyebrow">Secure access</span>
             <h2>Welcome back</h2>
-            <p>Sign in to manage the Agribridge platform.</p>
+            <p>Sign in to manage the AgriBridge platform.</p>
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -155,7 +122,7 @@ export default function Home() {
           </form>
         </div>
 
-        <footer>© 2026 Agribridge. All rights reserved.</footer>
+        <footer>© 2026 AgriBridge. All rights reserved.</footer>
       </section>
     </main>
   );
