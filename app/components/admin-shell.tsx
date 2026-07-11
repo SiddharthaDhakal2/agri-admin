@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
@@ -80,7 +81,7 @@ export function AdminShell({
     <div className="admin-shell">
       <aside className={`admin-sidebar ${sidebarOpen ? "is-open" : ""}`}>
         <div className="admin-logo">
-          <img className="logo-leaf" src="/agri_logo.png" alt="" />
+          <Image className="logo-leaf" src="/agri_logo.png" alt="" width={38} height={38} />
           <div><strong>AgriBridge</strong></div>
         </div>
         <nav className="admin-nav" aria-label="Admin navigation">
