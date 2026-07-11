@@ -69,6 +69,12 @@ a {
   letter-spacing: -0.03em;
 }
 
+.brand-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
 .brand-light {
   color: white;
 }
@@ -432,14 +438,10 @@ footer {
 }
 
 .logo-leaf {
-  display: grid;
   width: 38px;
   height: 38px;
-  place-items: center;
-  border-radius: 11px 11px 11px 3px;
-  background: linear-gradient(145deg, #b9d87a, #8eb957);
-  color: #153b2e;
-  font-weight: 700;
+  object-fit: contain;
+  border-radius: 11px;
   box-shadow: 0 8px 18px rgba(8, 35, 26, 0.25);
 }
 
@@ -506,6 +508,11 @@ footer {
   transition: 150ms ease;
 }
 
+.admin-nav button:focus,
+.admin-nav a:focus {
+  outline: 0;
+}
+
 .admin-nav button:hover,
 .admin-nav button.active,
 .admin-nav a:hover,
@@ -516,9 +523,8 @@ footer {
 
 .admin-nav button.active,
 .admin-nav a.active {
-  background: linear-gradient(90deg, rgba(185, 216, 122, 0.22), rgba(185, 216, 122, 0.08));
+  background: rgba(255, 255, 255, 0.12);
   color: #d9edae;
-  box-shadow: inset 3px 0 #b7d77a, 0 7px 18px rgba(5, 27, 20, 0.09);
 }
 
 .admin-nav svg,
@@ -556,6 +562,77 @@ footer {
   border-color: rgba(233, 156, 135, 0.22);
   background: rgba(195, 95, 74, 0.1);
   color: #f2c1b5;
+}
+
+.logout-confirm-overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.logout-confirm-panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 500px);
+  overflow: hidden;
+  padding: 0;
+  border-radius: 8px;
+  background: white;
+  text-align: left;
+  box-shadow: 0 24px 54px rgba(22, 45, 34, 0.2);
+}
+
+.logout-confirm-panel h2 {
+  margin: 0;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #edf0eb;
+  color: #203d31;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.logout-confirm-panel p {
+  margin: 0;
+  padding: 1.25rem 1.5rem 1rem;
+  color: #69736e;
+  font-size: 0.88rem;
+}
+
+.logout-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  padding: 0.85rem 1.5rem 1.2rem;
+}
+
+.logout-confirm-actions button,
+.logout-confirm-actions a {
+  display: inline-flex;
+  height: 38px;
+  min-width: 92px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.logout-confirm-actions button {
+  border: 1px solid #dfe4df;
+  background: #fff;
+  color: #1f2f28;
+}
+
+.logout-confirm-actions a {
+  border: 0;
+  background: #e60012;
+  color: white;
 }
 
 .admin-main {
@@ -2321,6 +2398,261 @@ td button svg { width: 17px; }
   color: white;
 }
 
+.advertisement-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.advertisement-summary .metric-box {
+  min-width: 0;
+}
+
+.advertisement-summary .metric-box > strong {
+  font-size: clamp(1.25rem, 1.7vw, 1.65rem);
+}
+
+.advertisement-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.advertisement-page-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4.3rem 0 1.5rem;
+}
+
+.advertisement-page-actions button {
+  display: inline-flex;
+  height: 40px;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0 1rem;
+  cursor: pointer;
+  border: 0;
+  border-radius: 7px;
+  background: #07833d;
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.advertisement-page-actions svg {
+  width: 16px;
+}
+
+.advertisement-table th:first-child,
+.advertisement-table td:first-child {
+  min-width: 280px;
+}
+
+.advertisement-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.advertisement-cell > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border-radius: 10px;
+  background: #e2eddd;
+  color: #35684c;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.advertisement-cell strong,
+.advertisement-cell small {
+  display: block;
+}
+
+.advertisement-cell small {
+  margin-top: 0.25rem;
+  color: #8f9994;
+  font-size: 0.58rem;
+}
+
+.target-badge {
+  display: inline-block;
+  min-width: 68px;
+  padding: 0.3rem 0.55rem;
+  border-radius: 20px;
+  font-size: 0.56rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.target-badge.farmer {
+  background: #dfeee3;
+  color: #3e7752;
+}
+
+.target-badge.buyer {
+  background: #dfeafa;
+  color: #3563a5;
+}
+
+.status.pause {
+  background: #f2e7d8;
+  color: #9c6b35;
+}
+
+.status.live {
+  background: #dfeee3;
+  color: #3e7752;
+}
+
+.advertisement-status-select {
+  min-width: 96px;
+  height: 32px;
+  padding: 0 0.65rem;
+  cursor: pointer;
+  border: 1px solid #dce4d9;
+  border-radius: 7px;
+  outline: 0;
+  color: #354b40;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.advertisement-status-select:focus {
+  box-shadow: 0 0 0 3px rgba(74, 124, 88, 0.12);
+}
+
+.advertisement-status-select.live {
+  background: #dfeee3;
+  color: #3e7752;
+}
+
+.advertisement-status-select.pause {
+  background: #f2e7d8;
+  color: #9c6b35;
+}
+
+.advertisement-form-panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 640px);
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 22px 60px rgba(22, 45, 34, 0.18);
+}
+
+.advertisement-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem 1.35rem;
+  border-bottom: 1px solid #e5e9e3;
+  background: #fbfcf8;
+}
+
+.advertisement-form-header h2 {
+  margin: 0;
+  color: #203d31;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.advertisement-form-header button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #55665d;
+}
+
+.advertisement-form-header button:hover {
+  background: #f0f3ec;
+}
+
+.advertisement-form-header svg {
+  width: 17px;
+}
+
+.advertisement-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.9rem;
+  padding: 1.25rem 1.35rem;
+}
+
+.advertisement-form-grid label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.advertisement-form-grid label:first-child,
+.advertisement-form-grid label:nth-child(3),
+.advertisement-form-grid label:nth-child(6) {
+  grid-column: 1 / -1;
+}
+
+.advertisement-form-grid span {
+  color: #74827a;
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+
+.advertisement-form-grid input,
+.advertisement-form-grid select {
+  width: 100%;
+  height: 40px;
+  padding: 0 0.85rem;
+  border: 1px solid #dce2da;
+  border-radius: 8px;
+  outline: 0;
+  background: #fff;
+  color: #203d31;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.advertisement-form-grid input:focus,
+.advertisement-form-grid select:focus {
+  border-color: #79a183;
+  box-shadow: 0 0 0 3px rgba(74, 124, 88, 0.1);
+}
+
+.advertisement-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  padding: 1rem 1.35rem 1.25rem;
+  border-top: 1px solid #e5e9e3;
+}
+
+.advertisement-form-actions button {
+  height: 38px;
+  padding: 0 1rem;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.advertisement-form-actions button:first-child {
+  border: 1px solid #dce2da;
+  background: #fff;
+  color: #55665d;
+}
+
+.advertisement-form-actions button:last-child {
+  border: 0;
+  background: #1f6835;
+  color: white;
+}
+
 @media (max-width: 1080px) {
   .metric-grid { grid-template-columns: repeat(2, 1fr); }
   .dashboard-grid { grid-template-columns: 1fr; }
@@ -2328,6 +2660,7 @@ td button svg { width: 17px; }
   .product-summary { grid-template-columns: repeat(2, 1fr); }
   .payment-summary { grid-template-columns: repeat(2, 1fr); }
   .order-summary { grid-template-columns: repeat(2, 1fr); }
+  .advertisement-summary { grid-template-columns: repeat(2, 1fr); }
   .profile-form-layout { grid-template-columns: 1fr; }
 }
 
@@ -2378,6 +2711,7 @@ td button svg { width: 17px; }
   .farmer-summary { grid-template-columns: 1fr; }
   .product-summary { grid-template-columns: 1fr; }
   .payment-summary { grid-template-columns: 1fr; }
+  .advertisement-summary { grid-template-columns: 1fr; }
   .buyer-order-stats { grid-template-columns: 1fr; }
   .detail-stats { grid-template-columns: 1fr; }
   .order-detail-summary { grid-template-columns: 1fr; }
@@ -2397,6 +2731,13 @@ td button svg { width: 17px; }
   .product-page-actions {
     justify-content: flex-start;
     margin: 0 0 1rem;
+  }
+  .advertisement-page-actions {
+    justify-content: flex-start;
+    margin: 0 0 1rem;
+  }
+  .advertisement-form-grid {
+    grid-template-columns: 1fr;
   }
   .metric-box { min-height: 125px; }
   .farmer-directory .card-heading {
