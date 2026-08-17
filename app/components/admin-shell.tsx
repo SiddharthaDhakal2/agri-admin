@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { clearAdminSession, getAdminUser, useAdminApi } from "../lib/api";
 
 export type IconName =
   | "dashboard" | "farmer" | "buyer" | "approval" | "orders"
@@ -43,6 +44,10 @@ export function Icon({ name }: { name: IconName }) {
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">{paths[name]}</svg>;
 }
 
+type NotificationFarmer = { id: string; name: string; status: "Unverified" | "Verified" | "Suspended"; profileCompleted: boolean; createdAt: string; profileCompletedAt?: string | null };
+type NotificationProduct = { _id: string; name: string; approvalStatus: "Pending" | "Approved" | "Rejected"; createdAt: string; farmer?: { name: string } };
+type AdminNotification = { id: string; title: string; message: string; time: string; sortKey: number; href: string; icon: IconName; tone: string };
+
 const navItems: { label: string; icon: IconName; href: string }[] = [
   { label: "Dashboard", icon: "dashboard", href: "/dashboard" },
   { label: "Farmer Management", icon: "farmer", href: "/farmer-management" },
@@ -69,6 +74,45 @@ export function AdminShell({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [adminUser, setAdminUser] = useState<{ name?: string; email?: string } | null>(null);
+  useEffect(() => {
+    setAdminUser(getAdminUser() as { name?: string; email?: string } | null);
+  }, []);
+
+  const { data: notificationFarmers } = useAdminApi<NotificationFarmer[]>("/admin/users?role=farmer", []);
+  const { data: notificationProducts } = useAdminApi<NotificationProduct[]>("/products", []);
+  const farmerNotifications: AdminNotification[] = notificationFarmers
+    .filter((farmer) => farmer.profileCompleted && farmer.status === "Unverified")
+    .map((farmer) => {
+      const date = farmer.profileCompletedAt || farmer.createdAt;
+      return { id: `farmer-${farmer.id}`, title: "Farmer needs verification", message: `${farmer.name} completed their profile and is awaiting verification.`, time: new Date(date).toLocaleDateString(), sortKey: new Date(date).getTime(), href: "/farmer-management", icon: "farmer" as IconName, tone: "gold" };
+    });
+  const productNotifications: AdminNotification[] = notificationProducts
+    .filter((product) => product.approvalStatus === "Pending")
+    .map((product) => ({ id: `product-${product._id}`, title: "Product needs approval", message: `${product.farmer?.name || "A farmer"} submitted "${product.name}" for approval.`, time: new Date(product.createdAt).toLocaleDateString(), sortKey: new Date(product.createdAt).getTime(), href: "/product-approval", icon: "approval" as IconName, tone: "lime" }));
+  const notifications = [...farmerNotifications, ...productNotifications].sort((a, b) => b.sortKey - a.sortKey).slice(0, 10);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [readNotificationIds, setReadNotificationIds] = useState<string[]>([]);
+  const notificationRef = useRef<HTMLDivElement>(null);
+  const unreadCount = notifications.filter((notification) => !readNotificationIds.includes(notification.id)).length;
+
+  useEffect(() => {
+    if (!notificationsOpen) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) setNotificationsOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setNotificationsOpen(false);
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [notificationsOpen]);
+
+  const markNotificationRead = (id: string) => setReadNotificationIds((current) => current.includes(id) ? current : [...current, id]);
   const active = navItems.find((item) => item.href === pathname)?.label ?? "Dashboard";
   const pageTitle = title ?? active;
   const pageSubtitle = subtitle ?? (
@@ -107,9 +151,54 @@ export function AdminShell({
           <button className="mobile-menu" aria-label="Open navigation" onClick={() => setSidebarOpen(true)}><Icon name="menu"/></button>
           <strong className="header-title">Admin Dashboard</strong>
           <div className="header-actions">
-            <button className="notification" aria-label="Notifications"><Icon name="bell"/><span /></button>
+            <div className="notification-wrap" ref={notificationRef}>
+              <button
+                type="button"
+                className="notification"
+                aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`}
+                aria-expanded={notificationsOpen}
+                onClick={() => setNotificationsOpen((current) => !current)}
+              >
+                <Icon name="bell"/>
+                {unreadCount === 0 && <span />}
+              </button>
+              {unreadCount > 0 && <span className="notification-count">{unreadCount}</span>}
+
+              {notificationsOpen && (
+                <div className="notification-panel">
+                  <div className="notification-panel-header">
+                    <div><h3>Notifications</h3><p>Items that need your review</p></div>
+                    {unreadCount > 0 && <button type="button" className="notification-mark-read" onClick={() => setReadNotificationIds(notifications.map((notification) => notification.id))}>Mark all as read</button>}
+                  </div>
+                  <div className="notification-list">
+                    {notifications.map((notification) => {
+                      const isUnread = !readNotificationIds.includes(notification.id);
+                      return (
+                        <Link
+                          key={notification.id}
+                          href={notification.href}
+                          className={`notification-item ${isUnread ? "unread" : ""}`}
+                          onClick={() => { markNotificationRead(notification.id); setNotificationsOpen(false); }}
+                        >
+                          <span className={`notification-icon ${notification.tone}`}><Icon name={notification.icon}/></span>
+                          <span className="notification-body">
+                            <span className="notification-title-row">
+                              <span className="notification-title">{notification.title}</span>
+                              {isUnread && <span className="notification-dot" aria-label="Unread" />}
+                            </span>
+                            <span className="notification-message">{notification.message}</span>
+                            <span className="notification-time">{notification.time}</span>
+                          </span>
+                        </Link>
+                      );
+                    })}
+                    {!notifications.length && <p className="notification-empty">You&apos;re all caught up.</p>}
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="admin-user">
-              <div><strong>Admin User</strong><small>admin@agribridge.com</small></div>
+              <div><strong>{adminUser?.name || "Admin User"}</strong><small>{adminUser?.email || "Administrator"}</small></div>
             </div>
           </div>
         </header>
@@ -135,7 +224,7 @@ export function AdminShell({
             <p>Are you sure you want to logout?</p>
             <div className="logout-confirm-actions">
               <button type="button" onClick={() => setLogoutOpen(false)}>Cancel</button>
-              <Link href="/">Logout</Link>
+              <Link href="/" onClick={clearAdminSession}>Logout</Link>
             </div>
           </section>
         </div>
