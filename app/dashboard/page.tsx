@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { AdminShell, EmptyManagementSection, Icon, IconName } from "../components/admin-shell";
+import { useAdminApi } from "../lib/api";
 
 const emptyRouteMeta: Record<string, { title: string; icon: IconName }> = {
   "/buyer-management": { title: "User Management", icon: "buyer" },
@@ -14,24 +15,19 @@ const emptyRouteMeta: Record<string, { title: string; icon: IconName }> = {
   "/profile": { title: "Profile", icon: "profile" },
 };
 
-const metrics = [
-  { label: "Total Revenue", value: "Rs 8.4M", icon: "payments" as IconName, tone: "mint" },
-  { label: "Total Orders", value: "4,892", icon: "orders" as IconName, tone: "lime" },
-  { label: "Total Products", value: "1,836", icon: "product" as IconName, tone: "sage" },
-  { label: "Pending Approvals", value: "38", icon: "approval" as IconName, tone: "gold" },
-  { label: "Total Farmers", value: "2,480", icon: "farmer" as IconName, tone: "sage" },
-  { label: "Total Buyers", value: "1,264", icon: "buyer" as IconName, tone: "lime" },
-];
-
-const orders = [
-  { id: "69a9bfc0", customer: "Siddhartha Dhakal", date: "3/5/2026", status: "Delivered", total: "Rs 1,470.00" },
-  { id: "69a3e121", customer: "HS", date: "3/1/2026", status: "Cancelled", total: "Rs 220.00" },
-  { id: "69a31747", customer: "Siddhartha Dhakal", date: "2/28/2026", status: "Processing", total: "Rs 420.00" },
-  { id: "69a2b795", customer: "Aayush Dhakal", date: "2/28/2026", status: "Cancelled", total: "Rs 620.00" },
-  { id: "69a1d3a2", customer: "Bidhan Koirala", date: "2/27/2026", status: "Pending", total: "Rs 620.00" },
-];
+type DashboardData = { metrics: { revenue: number; totalOrders: number; totalProducts: number; pendingApprovals: number; totalFarmers: number; totalBuyers: number }; recentOrders: Array<{ _id: string; orderNumber: string; buyer?: { name: string }; createdAt: string; status: string; total: number }>; pendingProducts: Array<{ _id: string; name: string; farmer?: { name: string; farmName?: string }; createdAt: string }>; monthly: Array<{ _id: { month: number }; count: number }> };
 
 function DashboardContent() {
+  const { data } = useAdminApi<DashboardData>("/admin/dashboard", { metrics: { revenue: 0, totalOrders: 0, totalProducts: 0, pendingApprovals: 0, totalFarmers: 0, totalBuyers: 0 }, recentOrders: [], pendingProducts: [], monthly: [] });
+  const metrics = [
+    { label: "Total Revenue", value: `Rs ${data.metrics.revenue.toLocaleString("en-IN")}`, icon: "payments" as IconName, tone: "mint" },
+    { label: "Total Orders", value: data.metrics.totalOrders.toString(), icon: "orders" as IconName, tone: "lime" },
+    { label: "Total Products", value: data.metrics.totalProducts.toString(), icon: "product" as IconName, tone: "sage" },
+    { label: "Pending Approvals", value: data.metrics.pendingApprovals.toString(), icon: "approval" as IconName, tone: "gold" },
+    { label: "Total Farmers", value: data.metrics.totalFarmers.toString(), icon: "farmer" as IconName, tone: "sage" },
+    { label: "Total Buyers", value: data.metrics.totalBuyers.toString(), icon: "buyer" as IconName, tone: "lime" },
+  ];
+  const peak = Math.max(1, ...data.monthly.map((item) => item.count));
   return (
     <>
       <section className="metric-grid" aria-label="Platform summary">
@@ -49,8 +45,8 @@ function DashboardContent() {
           <div className="chart-wrap">
             <div className="chart-y"><span>400</span><span>300</span><span>200</span><span>100</span><span>0</span></div>
             <div className="bar-chart">
-              {[45, 58, 48, 72, 65, 79, 61, 86, 75, 91, 83, 96].map((height, index) => (
-                <div className="bar-column" key={index}><span style={{ height: `${height}%` }} /><small>{["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][index]}</small></div>
+              {Array.from({ length: 12 }, (_, index) => data.monthly.find((item) => item._id.month === index + 1)?.count || 0).map((count, index) => (
+                <div className="bar-column" key={index}><span style={{ height: `${(count / peak) * 100}%` }} /><small>{["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][index]}</small></div>
               ))}
             </div>
           </div>
@@ -59,13 +55,13 @@ function DashboardContent() {
         <article className="dashboard-card approvals-card">
           <div className="card-heading">
             <div><h2>Product Approvals</h2><p>Products waiting for your review</p></div>
-            <span className="approval-count">3 pending</span>
+            <span className="approval-count">{data.metrics.pendingApprovals} pending</span>
           </div>
-          {[["Himalayan Red Apples","Ram Bahadur","2h ago"],["Organic Black Rice","Sita Agro Farm","4h ago"],["Fresh Buffalo Milk","Kavre Dairy","5h ago"]].map(([product, farmer, time], i) => (
-            <div className="approval-row" key={product}>
-              <span className={`product-thumb thumb-${i + 1}`}>{product.charAt(0)}</span>
-              <div><strong>{product}</strong><small>{farmer} - {time}</small></div>
-              <button aria-label={`Review ${product}`}>Review <Icon name="arrow"/></button>
+          {data.pendingProducts.map((product, i) => (
+            <div className="approval-row" key={product._id}>
+              <span className={`product-thumb thumb-${i + 1}`}>{product.name.charAt(0)}</span>
+              <div><strong>{product.name}</strong><small>{product.farmer?.farmName || product.farmer?.name || "Farmer"}</small></div>
+              <button aria-label={`Review ${product.name}`}>Review <Icon name="arrow"/></button>
             </div>
           ))}
           <button className="view-all">View all pending products <Icon name="arrow"/></button>
@@ -77,7 +73,7 @@ function DashboardContent() {
         <div className="table-scroll">
           <table>
             <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Status</th><th>Total</th></tr></thead>
-            <tbody>{orders.map((order) => <tr key={order.id}><td><strong>{order.id}</strong></td><td>{order.customer}</td><td>{order.date}</td><td><span className={`status ${order.status.toLowerCase()}`}>{order.status}</span></td><td className="order-total"><strong>{order.total}</strong></td></tr>)}</tbody>
+            <tbody>{data.recentOrders.map((order) => <tr key={order._id}><td><strong>{order.orderNumber}</strong></td><td>{order.buyer?.name || "Buyer"}</td><td>{new Date(order.createdAt).toLocaleDateString()}</td><td><span className={`status ${order.status.toLowerCase()}`}>{order.status}</span></td><td className="order-total"><strong>Rs {order.total.toLocaleString("en-IN")}</strong></td></tr>)}</tbody>
           </table>
         </div>
       </section>
