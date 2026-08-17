@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { adminApi, setAdminSession } from "./lib/api";
 
 function AgribridgeMark() {
   return <img className="brand-logo" src="/agri_logo.png" alt="" />;
@@ -23,10 +24,14 @@ function EyeIcon({ hidden }: { hidden: boolean }) {
 export default function Home() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.push("/dashboard");
+    const form = new FormData(event.currentTarget); setLoading(true); setError("");
+    try { const data = await adminApi<{ token: string; user: unknown }>("/auth/login", { method: "POST", body: JSON.stringify({ email: form.get("email"), password: form.get("password"), portal: "admin" }) }); setAdminSession(data); router.push("/dashboard"); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : "Login failed"); } finally { setLoading(false); }
   }
 
   return (
@@ -86,6 +91,7 @@ export default function Home() {
                   type="email"
                   placeholder="admin@agribridge.com"
                   autoComplete="email"
+                  required
                 />
               </div>
             </div>
@@ -103,6 +109,7 @@ export default function Home() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   autoComplete="current-password"
+                  required
                 />
                 <button
                   className="show-password"
@@ -115,8 +122,9 @@ export default function Home() {
               </div>
             </div>
 
-            <button className="submit-button" type="submit">
-              Sign in
+            {error && <p role="alert" style={{ color: "#a94242", marginBottom: 12 }}>{error}</p>}
+            <button className="submit-button" type="submit" disabled={loading}>
+              {loading ? "Signing in..." : "Sign in"}
             </button>
 
           </form>
