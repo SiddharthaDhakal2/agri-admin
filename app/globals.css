@@ -2757,8 +2757,7 @@ td button svg { width: 17px; }
 }
 
 .advertisement-form-grid label:first-child,
-.advertisement-form-grid label:nth-child(3),
-.advertisement-form-grid label:nth-child(6) {
+.advertisement-form-grid label:nth-child(10) {
   grid-column: 1 / -1;
 }
 
