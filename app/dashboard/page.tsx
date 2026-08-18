@@ -15,10 +15,11 @@ const emptyRouteMeta: Record<string, { title: string; icon: IconName }> = {
   "/profile": { title: "Profile", icon: "profile" },
 };
 
-type DashboardData = { metrics: { revenue: number; totalOrders: number; totalProducts: number; pendingApprovals: number; totalFarmers: number; totalBuyers: number }; recentOrders: Array<{ _id: string; orderNumber: string; buyer?: { name: string }; createdAt: string; status: string; total: number }>; pendingProducts: Array<{ _id: string; name: string; farmer?: { name: string; farmName?: string }; createdAt: string }>; monthly: Array<{ _id: { month: number }; count: number }> };
+type DashboardData = { metrics: { revenue: number; totalOrders: number; totalProducts: number; pendingApprovals: number; totalFarmers: number; totalBuyers: number }; recentOrders: Array<{ _id: string; orderNumber: string; buyer?: { name: string }; createdAt: string; status: string; total: number; paymentMethod: string; paymentStatus: string }>; pendingProducts: Array<{ _id: string; name: string; farmer?: { name: string; farmName?: string }; createdAt: string }>; monthly: Array<{ _id: { month: number }; count: number }> };
 
 function DashboardContent() {
   const { data } = useAdminApi<DashboardData>("/admin/dashboard", { metrics: { revenue: 0, totalOrders: 0, totalProducts: 0, pendingApprovals: 0, totalFarmers: 0, totalBuyers: 0 }, recentOrders: [], pendingProducts: [], monthly: [] });
+  const paidRecentOrders = data.recentOrders.filter((order) => order.paymentMethod === "Cash on Delivery" || order.paymentStatus === "Success");
   const metrics = [
     { label: "Total Revenue", value: `Rs ${data.metrics.revenue.toLocaleString("en-IN")}`, icon: "payments" as IconName, tone: "mint" },
     { label: "Total Orders", value: data.metrics.totalOrders.toString(), icon: "orders" as IconName, tone: "lime" },
@@ -73,7 +74,7 @@ function DashboardContent() {
         <div className="table-scroll">
           <table>
             <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Status</th><th>Total</th></tr></thead>
-            <tbody>{data.recentOrders.map((order) => <tr key={order._id}><td><strong>{order.orderNumber}</strong></td><td>{order.buyer?.name || "Buyer"}</td><td>{new Date(order.createdAt).toLocaleDateString()}</td><td><span className={`status ${order.status.toLowerCase()}`}>{order.status}</span></td><td className="order-total"><strong>Rs {order.total.toLocaleString("en-IN")}</strong></td></tr>)}</tbody>
+            <tbody>{paidRecentOrders.map((order) => <tr key={order._id}><td><strong>{order.orderNumber}</strong></td><td>{order.buyer?.name || "Buyer"}</td><td>{new Date(order.createdAt).toLocaleDateString()}</td><td><span className={`status ${order.status.toLowerCase()}`}>{order.status}</span></td><td className="order-total"><strong>Rs {order.total.toLocaleString("en-IN")}</strong></td></tr>)}</tbody>
           </table>
         </div>
       </section>
