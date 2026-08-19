@@ -10,7 +10,7 @@ export type IconName =
   | "dashboard" | "farmer" | "buyer" | "approval" | "orders"
   | "product" | "inventory" | "payments" | "ads" | "profile"
   | "logout" | "search" | "bell" | "menu" | "arrow" | "more" | "eye" | "x"
-  | "edit" | "trash" | "plus" | "trendUp" | "warning" | "trendDown" | "wallet" | "check";
+  | "edit" | "trash" | "plus" | "trendUp" | "warning" | "trendDown" | "wallet" | "check" | "chat";
 
 export function Icon({ name }: { name: IconName }) {
   const paths: Record<IconName, React.ReactNode> = {
@@ -40,6 +40,7 @@ export function Icon({ name }: { name: IconName }) {
     trendDown: <><path d="m4 9 5 5 4-4 7 7"/><path d="M15 17h5v-5"/></>,
     wallet: <><path d="M4 7h16v12H4z"/><path d="M16 11h4v4h-4a2 2 0 0 1 0-4Z"/><path d="M4 7l3-3h10l3 3"/></>,
     check: <><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.5 2.5L16 9.5"/></>,
+    chat: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>,
   };
 
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">{paths[name]}</svg>;
@@ -56,6 +57,7 @@ const navItems: { label: string; icon: IconName; href: string }[] = [
   { label: "Product Approval", icon: "approval", href: "/product-approval" },
   { label: "Orders", icon: "orders", href: "/orders" },
   { label: "Product", icon: "product", href: "/product" },
+  { label: "Support", icon: "chat", href: "/support" },
   { label: "Payments", icon: "payments", href: "/payments" },
   { label: "Wallet", icon: "wallet", href: "/wallet" },
   { label: "Farmer Settlement", icon: "payments", href: "/wallet/settlements" },
@@ -93,11 +95,13 @@ export function AdminShell({
   const { data: notificationProducts } = useAdminApi<NotificationProduct[]>("/products", []);
   const { data: navOrders } = useAdminApi<Array<{ status: string }>>("/orders", []);
   const { data: navWithdrawals } = useAdminApi<Array<{ status: string }>>("/admin/withdrawals", []);
+  const { data: navSupportThreads } = useAdminApi<Array<{ unread: number }>>("/support/threads", []);
   const navBadges: Record<string, number> = {
     "Farmer Management": notificationFarmers.filter((farmer) => farmer.profileCompleted && farmer.status === "Unverified").length,
     "Product Approval": notificationProducts.filter((product) => product.approvalStatus === "Pending").length,
     "Orders": navOrders.filter((order) => order.status === "Pending").length,
     "Withdrawal Requests": navWithdrawals.filter((withdrawal) => withdrawal.status === "Pending").length,
+    "Support": navSupportThreads.reduce((sum, thread) => sum + thread.unread, 0),
   };
   const farmerNotifications: AdminNotification[] = notificationFarmers
     .filter((farmer) => farmer.profileCompleted && farmer.status === "Unverified")
