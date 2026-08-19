@@ -27,6 +27,8 @@ export default function ProductApprovalPage() {
   const [rejectNote, setRejectNote] = useState("");
   const [rejecting, setRejecting] = useState(false);
   const [rejectError, setRejectError] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | Status>("all");
   async function update(id: string, status: Status, reviewNote?: string) { await adminApi(`/products/${id}/approval`, { method: "PATCH", body: JSON.stringify({ status, ...(reviewNote ? { reviewNote } : {}) }) }); await refresh(); }
   function handleStatusChange(product: Product, status: Status) {
     if (status === "Rejected") { setRejectTarget(product); setRejectNote(""); setRejectError(""); return; }
@@ -55,6 +57,8 @@ export default function ProductApprovalPage() {
       setDeleting(false);
     }
   }
+  const query = search.trim().toLowerCase();
+  const filteredProducts = products.filter((product) => (statusFilter === "all" || product.approvalStatus === statusFilter) && (!query || product.name.toLowerCase().includes(query) || (product.farmer?.name || "").toLowerCase().includes(query)));
   const stats = [
     { label: "Total Product", value: products.length, icon: "product" as IconName, tone: "sage" },
     { label: "Pending", value: products.filter((p) => p.approvalStatus === "Pending").length, icon: "bell" as IconName, tone: "gold" },
@@ -63,7 +67,7 @@ export default function ProductApprovalPage() {
   ];
   return <AdminShell title="Product Approval" subtitle="Review submitted products and update their approval status.">
     <section className="metric-grid farmer-summary">{stats.map((stat) => <article className="metric-box" key={stat.label}><div className={`metric-symbol ${stat.tone}`}><Icon name={stat.icon}/></div><span>{stat.label}</span><strong>{stat.value}</strong></article>)}</section>
-    <section className="dashboard-card product-approval-card"><div className="simple-users-heading"><h2>Submitted Products</h2></div><div className="table-scroll"><table className="product-approval-table"><thead><tr><th>Product</th><th>Farmer</th><th>Category</th><th>Stock</th><th>Price</th><th>Total Price</th><th>Actions</th></tr></thead><tbody>{products.map((product) => <tr key={product._id}><td><div className="approval-product-cell">{product.image ? <img src={assetUrl(product.image)} alt={product.name} style={{ width: "34px", height: "34px", borderRadius: "8px", objectFit: "cover" }} /> : <span>{product.name.charAt(0)}</span>}<strong>{product.name}</strong></div></td><td>{product.farmer?.name || "Farmer"}</td><td>{product.category}</td><td>{product.stock} {product.unit}</td><td><strong>Rs {product.price}/{product.unit}</strong></td><td><strong>Rs {(product.stock * product.price).toLocaleString("en-IN")}</strong></td><td><div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><select className={`approval-status-select ${product.approvalStatus.toLowerCase()}`} value={product.approvalStatus} onChange={(event) => handleStatusChange(product, event.target.value as Status)}><option>Pending</option><option>Approved</option><option>Rejected</option></select><button className="table-icon-button" title="View details" onClick={() => setSelected(product)}><Icon name="eye"/></button><button className="table-icon-button" title="Delete product" onClick={() => setDeleteTarget(product)}><Icon name="trash"/></button></div></td></tr>)}</tbody></table></div>{!products.length && <p style={{ padding: 24, textAlign: "center" }}>{error || "No submitted products."}</p>}</section>
+    <section className="dashboard-card product-approval-card"><div className="simple-users-heading"><h2>Submitted Products</h2><div className="withdrawal-filter-controls"><label className="simple-users-search"><Icon name="search"/><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by product or farmer..."/></label><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as "all" | Status)} className="withdrawal-role-select" aria-label="Filter by status"><option value="all">All Status</option><option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option></select></div></div><div className="table-scroll"><table className="product-approval-table"><thead><tr><th>Product</th><th>Farmer</th><th>Category</th><th>Stock</th><th>Price</th><th>Total Price</th><th>Actions</th></tr></thead><tbody>{filteredProducts.map((product) => <tr key={product._id}><td><div className="approval-product-cell">{product.image ? <img src={assetUrl(product.image)} alt={product.name} style={{ width: "34px", height: "34px", borderRadius: "8px", objectFit: "cover" }} /> : <span>{product.name.charAt(0)}</span>}<strong>{product.name}</strong></div></td><td>{product.farmer?.name || "Farmer"}</td><td>{product.category}</td><td>{product.stock} {product.unit}</td><td><strong>Rs {product.price}/{product.unit}</strong></td><td><strong>Rs {(product.stock * product.price).toLocaleString("en-IN")}</strong></td><td><div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><select className={`approval-status-select ${product.approvalStatus.toLowerCase()}`} value={product.approvalStatus} onChange={(event) => handleStatusChange(product, event.target.value as Status)}><option>Pending</option><option>Approved</option><option>Rejected</option></select><button className="table-icon-button" title="View details" onClick={() => setSelected(product)}><Icon name="eye"/></button><button className="table-icon-button" title="Delete product" onClick={() => setDeleteTarget(product)}><Icon name="trash"/></button></div></td></tr>)}</tbody></table></div>{!filteredProducts.length && <p style={{ padding: 24, textAlign: "center" }}>{error || (products.length ? "No products match your search." : "No submitted products.")}</p>}</section>
 
     {selected && <div className="detail-overlay" role="dialog" aria-modal="true" aria-labelledby="product-detail-title"><button className="detail-backdrop" type="button" aria-label="Close details" onClick={() => setSelected(null)} /><section className="dashboard-card farmer-detail-panel">
       <div className="detail-header">
@@ -107,7 +111,10 @@ export default function ProductApprovalPage() {
     </section></div>}
 
     {deleteTarget && <div className="logout-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-product-title"><button className="detail-backdrop" type="button" aria-label="Cancel delete" onClick={() => !deleting && setDeleteTarget(null)} /><section className="dashboard-card logout-confirm-panel">
-      <h2 id="delete-product-title">Delete Product</h2>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", padding: "1.25rem 1.5rem", borderBottom: "1px solid #edf0eb" }}>
+        <h2 id="delete-product-title" style={{ margin: 0, padding: 0, border: 0 }}>Delete Product</h2>
+        <span style={{ display: "grid", flexShrink: 0, placeItems: "center", width: "44px", height: "44px", borderRadius: "10px", background: "#fde1e1", color: "#e11d48" }}><Icon name="trash"/></span>
+      </div>
       <p>Are you sure you want to delete &quot;{deleteTarget.name}&quot;? This removes it from the farmer&apos;s listings and the buyer storefront everywhere.</p>
       <div className="logout-confirm-actions">
         <button type="button" disabled={deleting} onClick={() => setDeleteTarget(null)}>Cancel</button>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AdminShell, EmptyManagementSection, Icon, IconName } from "../components/admin-shell";
 import { useAdminApi } from "../lib/api";
@@ -19,7 +20,7 @@ type DashboardData = { metrics: { revenue: number; totalOrders: number; totalPro
 
 function DashboardContent() {
   const { data } = useAdminApi<DashboardData>("/admin/dashboard", { metrics: { revenue: 0, totalOrders: 0, totalProducts: 0, pendingApprovals: 0, totalFarmers: 0, totalBuyers: 0 }, recentOrders: [], pendingProducts: [], monthly: [] });
-  const paidRecentOrders = data.recentOrders.filter((order) => order.paymentMethod === "Cash on Delivery" || order.paymentStatus === "Success");
+  const paidRecentOrders = data.recentOrders.filter((order) => order.paymentMethod === "Cash on Delivery" || order.paymentStatus === "Success" || order.paymentStatus === "Refunded");
   const metrics = [
     { label: "Total Revenue", value: `Rs ${data.metrics.revenue.toLocaleString("en-IN")}`, icon: "payments" as IconName, tone: "mint" },
     { label: "Total Orders", value: data.metrics.totalOrders.toString(), icon: "orders" as IconName, tone: "lime" },
@@ -62,10 +63,10 @@ function DashboardContent() {
             <div className="approval-row" key={product._id}>
               <span className={`product-thumb thumb-${i + 1}`}>{product.name.charAt(0)}</span>
               <div><strong>{product.name}</strong><small>{product.farmer?.farmName || product.farmer?.name || "Farmer"}</small></div>
-              <button aria-label={`Review ${product.name}`}>Review <Icon name="arrow"/></button>
+              <Link href="/product-approval" aria-label={`Review ${product.name}`}>Review <Icon name="arrow"/></Link>
             </div>
           ))}
-          <button className="view-all">View all pending products <Icon name="arrow"/></button>
+          <Link href="/product-approval" className="view-all">View all pending products <Icon name="arrow"/></Link>
         </article>
       </section>
 

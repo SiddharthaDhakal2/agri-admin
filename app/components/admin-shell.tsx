@@ -10,7 +10,7 @@ export type IconName =
   | "dashboard" | "farmer" | "buyer" | "approval" | "orders"
   | "product" | "inventory" | "payments" | "ads" | "profile"
   | "logout" | "search" | "bell" | "menu" | "arrow" | "more" | "eye" | "x"
-  | "edit" | "trash" | "plus" | "trendUp" | "warning" | "trendDown" | "wallet";
+  | "edit" | "trash" | "plus" | "trendUp" | "warning" | "trendDown" | "wallet" | "check";
 
 export function Icon({ name }: { name: IconName }) {
   const paths: Record<IconName, React.ReactNode> = {
@@ -24,7 +24,7 @@ export function Icon({ name }: { name: IconName }) {
     payments: <><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></>,
     ads: <><path d="m4 13 14-6v10L4 13Z"/><path d="M7 14v5h4v-3M20 9v6"/></>,
     profile: <><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></>,
-    logout: <><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10"/></>,
+    logout: <><path d="M10 17l5-5-5-5M15 12H3"/><path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/></>,
     search: <><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></>,
     bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></>,
     menu: <path d="M4 7h16M4 12h16M4 17h16"/>,
@@ -33,12 +33,13 @@ export function Icon({ name }: { name: IconName }) {
     eye: <><path d="M3 12s3.5-5 9-5 9 5 9 5-3.5 5-9 5-9-5-9-5Z"/><circle cx="12" cy="12" r="2.25"/></>,
     x: <path d="M18 6 6 18M6 6l12 12"/>,
     edit: <><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/></>,
-    trash: <><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></>,
+    trash: <><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></>,
     plus: <path d="M12 5v14M5 12h14"/>,
     trendUp: <><path d="m4 15 5-5 4 4 7-7"/><path d="M15 7h5v5"/></>,
     warning: <><path d="M12 4 3 20h18L12 4Z"/><path d="M12 9v4M12 17h.01"/></>,
     trendDown: <><path d="m4 9 5 5 4-4 7 7"/><path d="M15 17h5v-5"/></>,
     wallet: <><path d="M4 7h16v12H4z"/><path d="M16 11h4v4h-4a2 2 0 0 1 0-4Z"/><path d="M4 7l3-3h10l3 3"/></>,
+    check: <><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.5 2.5L16 9.5"/></>,
   };
 
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">{paths[name]}</svg>;
@@ -56,6 +57,9 @@ const navItems: { label: string; icon: IconName; href: string }[] = [
   { label: "Orders", icon: "orders", href: "/orders" },
   { label: "Product", icon: "product", href: "/product" },
   { label: "Payments", icon: "payments", href: "/payments" },
+  { label: "Wallet", icon: "wallet", href: "/wallet" },
+  { label: "Farmer Settlement", icon: "payments", href: "/wallet/settlements" },
+  { label: "Withdrawal Requests", icon: "trendDown", href: "/wallet/withdrawals" },
   { label: "Advertisement", icon: "ads", href: "/advertisement" },
   { label: "Profile", icon: "profile", href: "/profile" },
 ];
@@ -78,9 +82,23 @@ export function AdminShell({
   useEffect(() => {
     setAdminUser(getAdminUser() as { name?: string; email?: string } | null);
   }, []);
+  const [dismissedBadges, setDismissedBadges] = useState<Record<string, number>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(localStorage.getItem("agribridgeAdminDismissedBadges") || "{}"); } catch { return {}; }
+  });
+  // ponytail: AdminShell is remounted by every page (no shared layout.tsx), so in-memory state alone would reset the dismissal on every navigation.
+  useEffect(() => { localStorage.setItem("agribridgeAdminDismissedBadges", JSON.stringify(dismissedBadges)); }, [dismissedBadges]);
 
   const { data: notificationFarmers } = useAdminApi<NotificationFarmer[]>("/admin/users?role=farmer", []);
   const { data: notificationProducts } = useAdminApi<NotificationProduct[]>("/products", []);
+  const { data: navOrders } = useAdminApi<Array<{ status: string }>>("/orders", []);
+  const { data: navWithdrawals } = useAdminApi<Array<{ status: string }>>("/admin/withdrawals", []);
+  const navBadges: Record<string, number> = {
+    "Farmer Management": notificationFarmers.filter((farmer) => farmer.profileCompleted && farmer.status === "Unverified").length,
+    "Product Approval": notificationProducts.filter((product) => product.approvalStatus === "Pending").length,
+    "Orders": navOrders.filter((order) => order.status === "Pending").length,
+    "Withdrawal Requests": navWithdrawals.filter((withdrawal) => withdrawal.status === "Pending").length,
+  };
   const farmerNotifications: AdminNotification[] = notificationFarmers
     .filter((farmer) => farmer.profileCompleted && farmer.status === "Unverified")
     .map((farmer) => {
@@ -129,16 +147,25 @@ export function AdminShell({
           <div><strong>AgriBridge</strong></div>
         </div>
         <nav className="admin-nav" aria-label="Admin navigation">
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              className={active === item.label ? "active" : ""}
-              href={item.href}
-              onClick={() => setSidebarOpen(false)}
-            >
-              <Icon name={item.icon}/><span>{item.label}</span>
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const liveCount = navBadges[item.label] || 0;
+            const dismissedAt = dismissedBadges[item.label] || 0;
+            const badge = liveCount > dismissedAt ? liveCount - dismissedAt : 0;
+            return (
+              <Link
+                key={item.label}
+                className={active === item.label ? "active" : ""}
+                href={item.href}
+                onClick={() => {
+                  setSidebarOpen(false);
+                  if (liveCount > 0) setDismissedBadges((current) => ({ ...current, [item.label]: liveCount }));
+                }}
+              >
+                <Icon name={item.icon}/><span>{item.label}</span>
+                {badge > 0 && <em>{badge}</em>}
+              </Link>
+            );
+          })}
         </nav>
         <button className="logout-button" type="button" onClick={() => setLogoutOpen(true)}>
           <Icon name="logout"/><span>Log out</span>
@@ -220,8 +247,13 @@ export function AdminShell({
         <div className="logout-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="logout-title">
           <button className="detail-backdrop" type="button" aria-label="Cancel logout" onClick={() => setLogoutOpen(false)} />
           <section className="dashboard-card logout-confirm-panel">
-            <h2 id="logout-title">Confirm Logout</h2>
-            <p>Are you sure you want to logout?</p>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", padding: "1.25rem 1.5rem", borderBottom: "1px solid #edf0eb" }}>
+              <h2 id="logout-title" style={{ margin: 0, padding: 0, border: 0 }}>Confirm Logout</h2>
+              <span style={{ display: "grid", flexShrink: 0, placeItems: "center", width: 44, height: 44, borderRadius: 12, background: "#fde1e1", color: "#e11d48" }}>
+                <Icon name="logout" />
+              </span>
+            </div>
+            <p style={{ padding: "1rem 1.5rem 0.25rem" }}>Are you sure you want to logout?</p>
             <div className="logout-confirm-actions">
               <button type="button" onClick={() => setLogoutOpen(false)}>Cancel</button>
               <Link href="/" onClick={clearAdminSession}>Logout</Link>

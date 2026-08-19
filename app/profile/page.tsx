@@ -1,14 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent } from "react";
 import { AdminShell } from "../components/admin-shell";
 import { adminApi, useAdminApi } from "../lib/api";
 
 export default function ProfilePage() {
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [mode, setMode] = useState<"light" | "dark">("light");
-  const { data: account, refresh } = useAdminApi<{ name: string; email: string; preferences?: { notifications: boolean; mode: "light" | "dark" } }>("/auth/me", { name: "", email: "" });
-  async function saveAccount(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const form = new FormData(event.currentTarget); await adminApi("/users/me", { method: "PATCH", body: JSON.stringify({ name: form.get("name"), preferences: { notifications: notificationsEnabled, mode } }) }); await refresh(); }
+  const { data: account, refresh } = useAdminApi<{ name: string; email: string }>("/auth/me", { name: "", email: "" });
+  async function saveAccount(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const form = new FormData(event.currentTarget); await adminApi("/users/me", { method: "PATCH", body: JSON.stringify({ name: form.get("name") }) }); await refresh(); }
   async function savePassword(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const form = new FormData(event.currentTarget); if (form.get("newPassword") !== form.get("confirmPassword")) return; await adminApi("/users/me/password", { method: "PATCH", body: JSON.stringify({ currentPassword: form.get("currentPassword"), newPassword: form.get("newPassword") }) }); event.currentTarget.reset(); }
 
   return (
@@ -60,47 +58,6 @@ export default function ProfilePage() {
             </div>
             <button type="submit">Update Password</button>
           </form>
-        </div>
-
-        <div className="profile-preferences">
-          <h3>Preferences</h3>
-          <div className="profile-preference-row">
-            <div>
-              <strong>Notifications</strong>
-              <span>Turn admin notifications on or off</span>
-            </div>
-            <label className="profile-switch">
-              <input
-                type="checkbox"
-                checked={notificationsEnabled}
-                onChange={(event) => setNotificationsEnabled(event.target.checked)}
-              />
-              <span />
-            </label>
-          </div>
-
-          <div className="profile-preference-row">
-            <div>
-              <strong>Mode</strong>
-              <span>Choose light or dark appearance</span>
-            </div>
-            <div className="profile-mode-toggle" aria-label="Appearance mode">
-              <button
-                type="button"
-                className={mode === "light" ? "active" : ""}
-                onClick={() => setMode("light")}
-              >
-                Light
-              </button>
-              <button
-                type="button"
-                className={mode === "dark" ? "active" : ""}
-                onClick={() => setMode("dark")}
-              >
-                Dark
-              </button>
-            </div>
-          </div>
         </div>
       </section>
     </AdminShell>
